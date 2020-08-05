@@ -1,6 +1,6 @@
 ## My Journal
 
- [Homework1](https://github.com/pjournal/gh-pages-template/edit/master/index.md) 
+ [Homework1](https://pjournal.github.io/boun01-yasin.karatekin/asgn1.html) 
 
 
 
