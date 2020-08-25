@@ -1,0 +1,96 @@
+---
+title: "Assignment 2"
+author: "Yasin Karatekin"
+output: 
+  html_document:
+    #css: styles.css
+    toc: true
+    toc_float: true
+date: "`r format(Sys.time(), '%d %B %Y')`"
+---
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(fig.align = 'center', echo = TRUE)
+```
+
+
+## Day Ahead Market - DAM
+At each day, at Day Ahead Market, consumers (utilities, retailers, traders etc.) (e.g. CK Boğaziçi Elektrik, Enerjisa AYESAŞ) and producers (e.g. Enerjisa Üretim, Borusan Enbw) put orders (bids and offers) for the next day’s hourly electricity plan. They state quantity and price for each hour of the next day. Entering orders is finished at noon.
+These orders are processed in a clearing mechanism. Clearing mechanism provides next day’s consumption/production plan from matching offers and market prices. These prices are called Market Clearing Price - MCP (Piyasa Takas Fiyatı - PTF). Since there are 24 hours in a day, there are 24 MCPs.
+MCPs are settled in a single session and they do not change.
+
+### Intraday Market - IDM
+
+It is not expected to predict next day’s hourly consumption perfectly. Therefore, intraday market is introduced.
+Unlike DAM, there is continuous trading at IDM. It is much like a stock exchange. Prices can change in mere seconds or in higher frequency.
+It is an opportunity to correct participants forecasts by trading their excess or missing MWhs.
+Hourly weighted average prices are reported as Weighted Average Price - WAP (Ağırlıklı Ortalama Fiyat - AOF)
+
+### Balancing Power Market - BPM
+
+It can be thought as last minute sale/purchase of electricity to balance a participant’s account (i.e. electricity bought from market vs consumed electricity). BPM is not a market where participants actively trade electricity, it is just for balancing.
+Last minute purchase is always more expensive and last minute sale is always cheaper. Therefore, it is not (usually) desirable to be subject to BPM.
+If there is a system-wide need for extra electricity production (i.e. actual demand > predicted demand), then it is called an Enerji Deficit (Enerji Açığı). If the situation is the opposite (i.e. actual demand < predicted demand), then it is called an Energy Surplus (Enerji Fazlası).
+Market operator may order some electricity production facilities (i.e. hydro plants, natural gas plants) to increase or decrease production.
+A single price per hour is reported as a result of balancing. It is called System Marginal Price - SMP (Sistem Marjinal Fiyatı - SMF).
+SMP is always higher than MCP if system has Energy Deficit, and lower if there is Energy Surplus.
+Market operator also penalizes the operations in BPM by 3%. This is called Imbalance Price. Negative (Deficit) Imbalance Price is calculated as max(MCP,SMP)1.03 and Positive Imbalance Price is calculated as min(MCP,SMP)0.97.
+
+```{r elcmarket libraries, include= FALSE}
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+library(tidyr)
+marketprice  <- read.csv("C:/Users/ysnkr/Documents/Ders/IE 48A/elektrik data/elcmarketdata.csv")
+```
+
+```{r elcmarket glimpse}
+marketprice %>% glimpse()
+```
+
+```{r electricity }
+head(marketprice)
+```
+### Changing Data Types 
+
+```{r electricity2 }
+new_marketprice <- marketprice %>% 
+  select(Date, MCP., SMP.) %>% 
+  mutate(Date = as.POSIXct(Date, format="%d.%m.%y %H:%M"))
+new_marketprice %>% glimpse()
+```
+## Analyses
+
+### Surplus/Deficit Percentages of Energy
+
+```{r comparison }
+surplus_deficit <- new_marketprice %>% 
+  summarise(Surplus = sum(MCP.>SMP.)/nrow(marketprice), Deficit = sum(MCP.<=SMP.)/nrow(marketprice)) %>% 
+  pivot_longer(cols = c(Surplus, Deficit), names_to = "Energy_Direction")
+
+ggplot(surplus_deficit, aes(x = "", y = value, fill = Energy_Direction)) + 
+  geom_col() +
+  coord_polar(theta = "y") +
+  geom_text(aes(label = scales::percent(round(value,2))), position = position_stack(vjust = 0.5)) + 
+  theme_void() + 
+  theme(plot.title = element_text(vjust = 0.5)) + 
+  ggtitle("July 2020 Surplus/Deficit Percentages of Energy")
+```
+
+### MCP - SMP Price Comparison for Day and Night Hours
+
+```{r mcpvssmp}
+plot_comparison1 <- new_marketprice %>% 
+  mutate(times_of_day = case_when(
+    lubridate::hour(Date) >= 1 & lubridate::hour(Date) <= 12 ~ "AM ( 00.00 - 11.59 )",
+    lubridate::hour(Date) == 0  || lubridate::hour(Date) >= 13 & lubridate::hour(Date) <= 23  ~ "PM ( 12.00 - 23.59 )"))  %>%
+  select(times_of_day, MCP., SMP.)
+```
+
+```{r mcpvssmp2}
+ggplot(plot_comparison1,aes(x = MCP., y = SMP., color=times_of_day)) + geom_point() + 
+  xlim(0,500) + 
+  ylim(0,750) + 
+  theme_minimal() + 
+  labs(x="MCP", y="SMP", color="Times of Day", title = "MCP - SMP", subtitle = "AM and PM Hours Price comparison in July 2020") + 
+  theme(legend.position="right",axis.text.x = element_text(angle=45,hjust=1,vjust=1))
+```
