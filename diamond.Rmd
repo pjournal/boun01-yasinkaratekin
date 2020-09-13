@@ -1,0 +1,78 @@
+---
+title: "Assignment 3"
+author: "Yasin Karatekin"
+date: "12 09 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Introduction
+
+A diamond is the hardest material on Earth, and has long-since been recognized for its beauty as a gemstone. Some 142 million carats of diamonds were estimated to have been produced from mines worldwide in 2019. Major producing countries include Australia, Canada, the Democratic Republic of Congo, Botswana, South Africa, and Russia. Worldwide reserves are estimated to be some 1.2 billion carats. Russia has the largest reserves, estimated at some 650 million carats.
+
+We are going to examine the price determination of various diamonds. 
+
+![](C:\Users\ysnkr\Downloads\Hero_DIAMOND-CARE_16-9.jpg)
+
+## Loading Packages and Data
+
+```{r libraries}
+library("tidyverse")
+library("ggplot2")
+data(diamonds)
+```
+
+## Examining the Data
+
+
+```{r examine}
+diamonds %>% glimpse()
+```
+As seen above, carat, cut, color and clarity are the main specifications of a diamond. We are going to make more detailed observations on them.
+
+## Diamond amount/price relation
+
+```{r price/amount}
+ggplot(diamonds, aes(x=price)) + geom_histogram(binwidth=200)
+```
+
+In the histogram above, we can see that diamonds with prices about 1000 dollars are produced the most. Especially with the prices above 5000 dollars, the diamond amounts decrease significantly. Let's look into the specifications more closely to see what determines the price of a diamond.
+
+## What determines the price of a diamond?
+
+As I mentioned before, carat, clarity, cut and color are the main specifications of a diamond.
+
+### Clarity
+
+![](C:\Users\ysnkr\Downloads\diamond clarity.jpg)
+
+Diamond clarity is the quality of diamonds that relates to the existence and visual appearance of internal characteristics of a diamond called inclusions, and surface defects, called blemishes. Clarity is one of the four Cs of diamond grading, the others being carat, color, and cut.
+
+```{r clarity}
+ggplot(diamonds, aes(x=carat, y=price, color=clarity)) + geom_point()
+```
+
+### Color
+
+![](C:\Users\ysnkr\Downloads\diamond color.jpg)
+
+A chemically pure and structurally perfect diamond is perfectly transparent with no hue, or color. However, in reality almost no gem-sized natural diamonds are absolutely perfect. The color of a diamond may be affected by chemical impurities and/or structural defects in the crystal lattice.
+
+```{r color}
+ggplot(diamonds, aes(x=carat, y=price, color=color)) + geom_point()
+```
+
+### Cut
+
+![](C:\Users\ysnkr\Downloads\diamond cut.jpg)
+
+A diamond cut is a style or design guide used when shaping a diamond for polishing such as the brilliant cut. Cut does not refer to shape, but the symmetry, proportioning and polish of a diamond. The cut of a diamond greatly affects a diamond's brilliance; this means if it is cut poorly, it will be less luminous.
+
+```{r cut}
+ggplot(diamonds, aes(x=carat, y=price, color=cut)) + geom_point()
+```
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
